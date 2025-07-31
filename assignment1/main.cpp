@@ -19,30 +19,12 @@
 const std::string COURSES_OFFERED_PATH = "student_output/courses_offered.csv";
 const std::string COURSES_NOT_OFFERED_PATH = "student_output/courses_not_offered.csv";
 
-/**
- * Represents a course a student can take in ExploreCourses.
- * You must fill in the types of the fields in this struct.
- * Hint: Remember what types C++ streams work with?!
- */
 struct Course {
-  /* STUDENT TODO */ title;
-  /* STUDENT TODO */ number_of_units;
-  /* STUDENT TODO */ quarter;
+  std::string title;
+  std::string number_of_units;
+  std::string quarter;
 };
 
-/**
- * (STUDENT TODO) Look at how the main function (at the bottom of this file)
- * calls `parse_csv`, `write_courses_offered`, and `write_courses_not_offered`.
- * Modify the signatures of these functions so that they work as intended, and then delete this
- * comment!
- */
-
-/**
- * Note:
- * We need to #include utils.cpp _after_ we declare the Course struct above
- * so that the code inside utils.cpp knows what a Course is.
- * Recall that #include literally copies and pastes file contents.
- */
 #include "utils.cpp"
 
 /**
@@ -58,8 +40,26 @@ struct Course {
  * @param filename The name of the file to parse.
  * @param courses  A vector of courses to populate.
  */
-void parse_csv(std::string filename, std::vector<Course> courses) {
-  /* (STUDENT TODO) Your code goes here... */
+void parse_csv(std::string filename, std::vector<Course>& courses) { // 传引用？
+  // 打开文件
+  std::ifstream ifs(filename);
+  if(ifs.is_open()) {
+    std::cout << "course.csv file is ok" << std::endl;
+  } else {
+    std::cerr << "course.csv file is shit" << std::endl;
+  }
+
+  std::string buf;
+
+  // 读入除第一行之外其他行
+  while(std::getline(ifs, buf)) {
+    auto readline = split(buf, ',');
+    if(readline[0] == "Title") continue;
+
+    Course course{readline[0], readline[1], readline[2]};
+    courses.push_back(course);
+  }
+  ifs.close();
 }
 
 /**
@@ -80,8 +80,32 @@ void parse_csv(std::string filename, std::vector<Course> courses) {
  * @param all_courses A vector of all courses gotten by calling `parse_csv`.
  *                    This vector will be modified by removing all offered courses.
  */
-void write_courses_offered(std::vector<Course> all_courses) {
-  /* (STUDENT TODO) Your code goes here... */
+void write_courses_offered(std::vector<Course>& all_courses) {
+  std::ofstream ofs(COURSES_OFFERED_PATH);
+  if(ofs.is_open()) {
+    std::cout << COURSES_OFFERED_PATH << " is ok" << std::endl;
+  } else {
+    std::cerr << COURSES_OFFERED_PATH << " is shit" << std::endl;
+  }
+
+  // 写入行名
+  Course headline{"Title", "Number of Units", "Quarter"};
+  ofs << headline;
+  ofs << '\n';
+
+  std::vector<Course> not_offered;
+  for(Course content : all_courses) {
+    if(content.quarter != "null") {
+      ofs << content;
+      ofs << '\n';
+      not_offered.push_back(content);
+    }
+  }
+
+  // 写入完成后再删除
+  for(Course content : not_offered) {
+    delete_elem_from_vector(all_courses, content);
+  }
 }
 
 /**
@@ -97,8 +121,22 @@ void write_courses_offered(std::vector<Course> all_courses) {
  *
  * @param unlisted_courses A vector of courses that are not offered.
  */
-void write_courses_not_offered(std::vector<Course> unlisted_courses) {
-  /* (STUDENT TODO) Your code goes here... */
+void write_courses_not_offered(std::vector<Course>& unlisted_courses) {
+  std::ofstream ofs(COURSES_NOT_OFFERED_PATH);
+  if(ofs.is_open()) {
+    std::cout << COURSES_OFFERED_PATH << " is ok" << std::endl;
+  } else {
+    std::cerr << COURSES_OFFERED_PATH << " is shit" << std::endl;
+  }
+
+  Course headline{"Title", "Number of Units", "Quarter"};
+  ofs << headline;
+  ofs << '\n';
+
+  for(Course content : unlisted_courses) {
+      ofs << content;
+      ofs << '\n';
+  }
 }
 
 int main() {
@@ -115,4 +153,5 @@ int main() {
   write_courses_not_offered(courses);
 
   return run_autograder();
+  return 0;
 }
